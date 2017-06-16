@@ -6,7 +6,9 @@
 # This is an implementation of sysusers.d from systemd
 
 warninvalid() {
-	printf "sysusers: ignoring invalid entry on line %d of \`%s'\n" "${line}" "${file}"
+	local msg=$1
+	[ -z "${msg}" ] && msg='ignoring invalid entry'
+	printf "sysusers: ${msg} on line %d of \`%s'\n" "${line}" "${file}"
 	error=$(( error+1 ))
 } >&2
 
@@ -27,6 +29,38 @@ add_user() {
 	fi
 }
 
+update_login_defs() {
+	local type=$1 name=$2 id=$3 gecos=$4 home=$5
+	[ ! "${name}" == '-' ] && warninvalid && return
+	i=1;
+	IFS='-' read -ra temp <<< "${id}"
+	for part in "${temp[@]}"; do
+		if [ "${i}" -eq 1 ]; then
+			min=${part}
+		fi
+		if [ "${i}" -eq 2 ]; then
+			max=${part}
+		fi
+		if [ "${i}" -eq 3 ]; then
+			warninvalid && continue
+		fi
+		i=$(( i+1 ))
+	done
+	[ ${min} -ge ${max} ] && warninvalid "invalid range" && return
+
+	while read -r NAME VALUE; do
+		[ "${NAME}" == 'SYS_UID_MAX' ] && suid_max=${VALUE}
+		[ "${NAME}" == 'SYS_GID_MAX' ] && sgid_max=${VALUE}
+	done < /etc/login.defs
+	[[ $min -lt $suid_max ]] && warninvalid "invalid range" && return
+	[[ $min -lt $sgid_max ]] && warninvalid "invalid range" && return
+
+	sed -re "s/^(UID_MIN)([[:space:]]+)(.*)/\1\2${min}/" -i /etc/login.defs
+	sed -re "s/^(UID_MAX)([[:space:]]+)(.*)/\1\2${max}/" -i /etc/login.defs
+	sed -re "s/^(GID_MIN)([[:space:]]+)(.*)/\1\2${min}/" -i /etc/login.defs
+	sed -re "s/^(GID_MAX)([[:space:]]+)(.*)/\1\2${max}/" -i /etc/login.defs
+}
+
 sysusers_dirs='/usr/lib/sysusers.d /run/sysusers.d /etc/sysusers.d'
 sysusers_basenames=''
 error=0
@@ -37,40 +71,42 @@ error=0
 # directories, on a per file basename basis.
 # `/etc/sysusers.d/foo.conf' supersedes `/usr/lib/sysusers.d/foo.conf'.
 # `/run/sysusers.d/foo.conf' will always be read after `/etc/sysusers.d/bar.conf'
-for dir in ${sysusers_dirs} ; do
-	[ -d $dir ] && for file in ${dir}/*.conf ; do
-		[ -f $file ] && sysusers_basenames="${sysusers_basenames}\n${f##*/}"
+for dir in ${sysusers_dirs}; do
+	[ -d "${dir}" ] && for file in "${dir}"/*.conf ; do
+		[ -f "${file}" ] && sysusers_basenames="${sysusers_basenames}\n${file##*/}"
 	done
 done
 FILES="$(printf "${sysusers_basenames}\n" | sort -u )"
 
 sysusers_d=''
 
-for b in ${FILES} ; do
+for b in ${FILES}; do
 	real_f=''
-	for d in $sysusers_dirs ; do
+	for d in $sysusers_dirs; do
 		f=${d}/${b}
-		[ -f "${f}" ] && real_f=$f
+		[ -f "${f}" ] && real_f="${f}"
 	done
 	[ -f "${real_f}" ] && sysusers_d="${sysusers_d} ${real_f}"
 done
 
-for file in ${sysusers_d} ; do
+for file in ${sysusers_d}; do
 	line=0
 	while read type name id gecos home; do
 		line=$(( line+1 ))
 
 		case "${type}" in
 			u)
-				[ "${id}" == '65535' ] && warninvalid; continue;
-				[ "${id}" == '4294967295' ] && warninvalid; continue;
+				[ "${id}" == '65535' ] && warninvalid && continue
+				[ "${id}" == '4294967295' ] && warninvalid && continue
+				[ "${home}" == '-' ] && home="/"
 				[ -z "${home}" ] && home="/"
 				add_group "${type}" "${name}" "${id}" "${gecos}" "${home}"
 				add_user "${type}" "${name}" "${id}" "${gecos}" "${home}"
 			;;
 			g)
-				[ "${id}" == '65535' ] && warninvalid; continue;
-				[ "${id}" == '4294967295' ] && warninvalid; continue;
+				[ "${id}" == '65535' ] && warninvalid && continue
+				[ "${id}" == '4294967295' ] && warninvalid && continue
+				[ "${home}" == '-' ] && home="/"
 				[ -z "${home}" ] && home="/"
 				add_group "${type}" "${name}" "${id}" "${gecos}" "${home}"
 			;;
@@ -84,10 +120,10 @@ for file in ${sysusers_d} ; do
 					usermod -a -G "${id}" "${name}"
 				fi
 			;;
-			r) # this is not fully implemented
-				[ ! "${name}" == '-' ] && warninvalid; continue;
+			r)
+				update_login_defs "${type}" "${name}" "${id}" "${gecos}" "${home}"
 			;;
-			*) warninvalid ; continue ;;
+			*) warninvalid; continue;;
 		esac
 
 	done < ${file}
