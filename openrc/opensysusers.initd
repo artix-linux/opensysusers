@@ -12,7 +12,6 @@ depend()
 start()
 {
 	ebegin "Setting up sysusers.d entries"
-	sysusers \
-		${sysusers_opts}
+	sysusers
 	eend $?
 }
