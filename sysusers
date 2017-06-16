@@ -1,0 +1,96 @@
+#!/bin/sh
+# Copyright (c) 2017 Chris Cromer
+# Copyright (c) 2012 Gentoo Foundation
+# Released under the 2-clause BSD license.
+#
+# This is an implementation of sysusers.d from systemd
+
+warninvalid() {
+	printf "sysusers: ignoring invalid entry on line %d of \`%s'\n" "${line}" "${file}"
+	error=$(( error+1 ))
+} >&2
+
+add_group() {
+	local type=$1 name=$2 id=$3 gecos=$4 home=$5
+	getent group "${name}" >/dev/null
+	if [ "$?" -ne 0 ]; then
+		groupadd -g "${id}" "${name}"
+	fi
+}
+
+add_user() {
+	local type=$1 name=$2 id=$3 gecos=$4 home=$5
+	getent passwd "${name}" >/dev/null
+	if [ "$?" -ne 0 ]; then
+		useradd -rc "${gecos}" -u "${id}" -g "${name}" -d "${home}" -s '/sbin/nologin' "${name}"
+		passwd -l "${name}" &>/dev/null
+	fi
+}
+
+sysusers_dirs='/usr/lib/sysusers.d /run/sysusers.d /etc/sysusers.d'
+sysusers_basenames=''
+error=0
+
+# this part is based on OpenRC's opentmpfiles
+# Build a list of sorted unique basenames
+# directories declared later in the sysusers_d array will override earlier
+# directories, on a per file basename basis.
+# `/etc/sysusers.d/foo.conf' supersedes `/usr/lib/sysusers.d/foo.conf'.
+# `/run/sysusers.d/foo.conf' will always be read after `/etc/sysusers.d/bar.conf'
+for dir in ${sysusers_dirs} ; do
+	[ -d $dir ] && for file in ${dir}/*.conf ; do
+		[ -f $file ] && sysusers_basenames="${sysusers_basenames}\n${f##*/}"
+	done
+done
+FILES="$(printf "${sysusers_basenames}\n" | sort -u )"
+
+sysusers_d=''
+
+for b in ${FILES} ; do
+	real_f=''
+	for d in $sysusers_dirs ; do
+		f=${d}/${b}
+		[ -f "${f}" ] && real_f=$f
+	done
+	[ -f "${real_f}" ] && sysusers_d="${sysusers_d} ${real_f}"
+done
+
+for file in ${sysusers_d} ; do
+	line=0
+	while read type name id gecos home; do
+		line=$(( line+1 ))
+
+		case "${type}" in
+			u)
+				[ "${id}" == '65535' ] && warninvalid; continue;
+				[ "${id}" == '4294967295' ] && warninvalid; continue;
+				[ -z "${home}" ] && home="/"
+				add_group "${type}" "${name}" "${id}" "${gecos}" "${home}"
+				add_user "${type}" "${name}" "${id}" "${gecos}" "${home}"
+			;;
+			g)
+				[ "${id}" == '65535' ] && warninvalid; continue;
+				[ "${id}" == '4294967295' ] && warninvalid; continue;
+				[ -z "${home}" ] && home="/"
+				add_group "${type}" "${name}" "${id}" "${gecos}" "${home}"
+			;;
+			m)
+				add_group "${type}" "${name}" "${id}" "${gecos}" "${home}"
+				getent passwd "${name}" >/dev/null
+				if [ "$?" -ne 0 ]; then
+					useradd -rc "${gecos}" -g "${id}" -s '/sbin/nologin' "${name}"
+					passwd -l "${name}" &>/dev/null
+				else
+					usermod -a -G "${id}" "${name}"
+				fi
+			;;
+			r) # this is not fully implemented
+				[ ! "${name}" == '-' ] && warninvalid; continue;
+			;;
+			*) warninvalid ; continue ;;
+		esac
+
+	done < ${file}
+done
+
+exit ${error}

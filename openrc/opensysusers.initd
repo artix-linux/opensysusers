@@ -1,0 +1,18 @@
+#!/sbin/openrc-run
+# Copyright 1999-2012 Gentoo Foundation
+# Released under the 2-clause BSD license.
+
+description="Set up sysusers.d entries"
+
+depend()
+{
+	need localmount
+}
+
+start()
+{
+	ebegin "Setting up sysusers.d entries"
+	sysusers \
+		${sysusers_opts}
+	eend $?
+}
