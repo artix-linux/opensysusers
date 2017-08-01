@@ -92,9 +92,11 @@ done
 for file in ${sysusers_d}; do
 	line=0
 	while read cline; do
+		[ ${cline:0:1} == "#" ] && continue
 		eval "set args ${cline}; shift"
 		i=0
 		for part in "${@}"; do
+			echo $part
 			if [ $i -eq 0 ]; then
 				type="${part}"
 			fi
