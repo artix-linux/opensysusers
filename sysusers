@@ -91,7 +91,27 @@ done
 
 for file in ${sysusers_d}; do
 	line=0
-	while read type name id gecos home; do
+	while read cline; do
+		eval "set args ${cline}; shift"
+		i=0
+		for part in "${@}"; do
+			if [ $i -eq 0 ]; then
+				type="${part}"
+			fi
+			if [ $i -eq 1 ]; then
+				name="${part}"
+			fi
+			if [ $i -eq 2 ]; then
+				id="${part}"
+			fi
+			if [ $i -eq 3 ]; then
+				gecos="${part}"
+			fi
+			if [ $i -eq 4 ]; then
+				home="${part}"
+			fi
+			i=$(( i+1 ))
+		done
 		line=$(( line+1 ))
 
 		case "${type}" in
