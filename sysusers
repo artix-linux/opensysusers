@@ -96,7 +96,6 @@ for file in ${sysusers_d}; do
 		eval "set args ${cline}; shift"
 		i=0
 		for part in "${@}"; do
-			echo $part
 			if [ $i -eq 0 ]; then
 				type="${part}"
 			fi
