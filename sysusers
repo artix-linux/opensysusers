@@ -19,7 +19,9 @@ add_group() {
 		if [ "${id}" == '-' ]; then
 			groupadd "${name}"
 		else
-			groupadd -g "${id}" "${name}"
+			if ! grep -qiw "${id}" /etc/group; then
+				groupadd -g "${id}" "${name}"
+			fi
 		fi
 	fi
 }
