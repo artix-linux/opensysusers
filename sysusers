@@ -16,7 +16,11 @@ add_group() {
 	local type=$1 name=$2 id=$3 gecos=$4 home=$5
 	getent group "${name}" >/dev/null
 	if [ "$?" -ne 0 ]; then
-		groupadd -g "${id}" "${name}"
+		if [ "${id}" == '-' ]; then
+			groupadd "${name}"
+		else
+			groupadd -g "${id}" "${name}"
+		fi
 	fi
 }
 
@@ -24,7 +28,11 @@ add_user() {
 	local type=$1 name=$2 id=$3 gecos=$4 home=$5
 	getent passwd "${name}" >/dev/null
 	if [ "$?" -ne 0 ]; then
-		useradd -rc "${gecos}" -u "${id}" -g "${name}" -d "${home}" -s '/sbin/nologin' "${name}"
+		if [ "${id}" == '-' ]; then
+			useradd -rc "${gecos}" -u "${id}" -g "${name}" -d "${home}" -s '/sbin/nologin' "${name}"
+		else
+			useradd -rc "${gecos}" -g "${name}" -d "${home}" -s '/sbin/nologin' "${name}"
+		fi
 		passwd -l "${name}" &>/dev/null
 	fi
 }
@@ -122,6 +130,7 @@ for file in ${sysusers_d}; do
 				[ "${home}" == '-' ] && home="/"
 				[ -z "${home}" ] && home="/"
 				add_group "${type}" "${name}" "${id}" "${gecos}" "${home}"
+				[ "${id}" == '-' ] && id=$(id -g "${name}")
 				add_user "${type}" "${name}" "${id}" "${gecos}" "${home}"
 			;;
 			g)
@@ -133,6 +142,7 @@ for file in ${sysusers_d}; do
 			;;
 			m)
 				add_group "${type}" "${name}" "${id}" "${gecos}" "${home}"
+				[ "${id}" == '-' ] && id=$(id -g "${name}")
 				getent passwd "${name}" >/dev/null
 				if [ "$?" -ne 0 ]; then
 					useradd -rc "${gecos}" -g "${id}" -s '/sbin/nologin' "${name}"
