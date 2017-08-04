@@ -13,24 +13,34 @@ warninvalid() {
 } >&2
 
 add_group() {
-	local type=$1 name=$2 id=$3 gecos=$4 home=$5
+	local name=$1 id=$2
 	getent group "${name}" >/dev/null
 	if [ "$?" -ne 0 ]; then
-		groupadd -g "${id}" "${name}"
+		if [ "${id}" == '-' ]; then
+			groupadd "${name}"
+		else
+			if ! grep -qiw "${id}" /etc/group; then
+				groupadd -g "${id}" "${name}"
+			fi
+		fi
 	fi
 }
 
 add_user() {
-	local type=$1 name=$2 id=$3 gecos=$4 home=$5
+	local name=$1 id=$2 gecos=$3 home=$4
 	getent passwd "${name}" >/dev/null
 	if [ "$?" -ne 0 ]; then
-		useradd -rc "${gecos}" -u "${id}" -g "${name}" -d "${home}" -s '/sbin/nologin' "${name}"
+		if [ "${id}" == '-' ]; then
+			useradd -rc "${gecos}" -u "${id}" -g "${name}" -d "${home}" -s '/sbin/nologin' "${name}"
+		else
+			useradd -rc "${gecos}" -g "${name}" -d "${home}" -s '/sbin/nologin' "${name}"
+		fi
 		passwd -l "${name}" &>/dev/null
 	fi
 }
 
 update_login_defs() {
-	local type=$1 name=$2 id=$3 gecos=$4 home=$5
+	local name=$1 id=$2
 	[ ! "${name}" == '-' ] && warninvalid && return
 	i=1;
 	IFS='-' read -ra temp <<< "${id}"
@@ -121,28 +131,29 @@ for file in ${sysusers_d}; do
 				[ "${id}" == '4294967295' ] && warninvalid && continue
 				[ "${home}" == '-' ] && home="/"
 				[ -z "${home}" ] && home="/"
-				add_group "${type}" "${name}" "${id}" "${gecos}" "${home}"
-				add_user "${type}" "${name}" "${id}" "${gecos}" "${home}"
+				add_group "${name}" "${id}"
+				[ "${id}" == '-' ] && id=$(getent group "${name}" | cut -d: -f3)
+				add_user "${name}" "${id}" "${gecos}" "${home}"
 			;;
 			g)
 				[ "${id}" == '65535' ] && warninvalid && continue
 				[ "${id}" == '4294967295' ] && warninvalid && continue
 				[ "${home}" == '-' ] && home="/"
 				[ -z "${home}" ] && home="/"
-				add_group "${type}" "${name}" "${id}" "${gecos}" "${home}"
+				add_group "${name}" "${id}"
 			;;
 			m)
-				add_group "${type}" "${name}" "${id}" "${gecos}" "${home}"
+				add_group "${name}" '-'
 				getent passwd "${name}" >/dev/null
 				if [ "$?" -ne 0 ]; then
-					useradd -rc "${gecos}" -g "${id}" -s '/sbin/nologin' "${name}"
+					useradd -r -g "${id}" -s '/sbin/nologin' "${name}"
 					passwd -l "${name}" &>/dev/null
 				else
 					usermod -a -G "${id}" "${name}"
 				fi
 			;;
 			r)
-				update_login_defs "${type}" "${name}" "${id}" "${gecos}" "${home}"
+				update_login_defs "${name}" "${id}"
 			;;
 			*) warninvalid; continue;;
 		esac
