@@ -130,7 +130,7 @@ for file in ${sysusers_d}; do
 				[ "${home}" == '-' ] && home="/"
 				[ -z "${home}" ] && home="/"
 				add_group "${type}" "${name}" "${id}" "${gecos}" "${home}"
-				[ "${id}" == '-' ] && id=$(id -g "${name}")
+				[ "${id}" == '-' ] && id=$(getent group "${name}" | cut -d: -f3)
 				add_user "${type}" "${name}" "${id}" "${gecos}" "${home}"
 			;;
 			g)
@@ -142,7 +142,7 @@ for file in ${sysusers_d}; do
 			;;
 			m)
 				add_group "${type}" "${name}" "${id}" "${gecos}" "${home}"
-				[ "${id}" == '-' ] && id=$(id -g "${name}")
+				[ "${id}" == '-' ] && id=$(getent group "${name}" | cut -d: -f3)
 				getent passwd "${name}" >/dev/null
 				if [ "$?" -ne 0 ]; then
 					useradd -rc "${gecos}" -g "${id}" -s '/sbin/nologin' "${name}"
