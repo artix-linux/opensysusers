@@ -13,7 +13,7 @@ warninvalid() {
 } >&2
 
 add_group() {
-	local type=$1 name=$2 id=$3 gecos=$4 home=$5
+	local name=$1 id=$2
 	getent group "${name}" >/dev/null
 	if [ "$?" -ne 0 ]; then
 		if [ "${id}" == '-' ]; then
@@ -25,7 +25,7 @@ add_group() {
 }
 
 add_user() {
-	local type=$1 name=$2 id=$3 gecos=$4 home=$5
+	local name=$1 id=$2 gecos=$3 home=$4
 	getent passwd "${name}" >/dev/null
 	if [ "$?" -ne 0 ]; then
 		if [ "${id}" == '-' ]; then
@@ -38,7 +38,7 @@ add_user() {
 }
 
 update_login_defs() {
-	local type=$1 name=$2 id=$3 gecos=$4 home=$5
+	local name=$1 id=$2
 	[ ! "${name}" == '-' ] && warninvalid && return
 	i=1;
 	IFS='-' read -ra temp <<< "${id}"
@@ -129,30 +129,29 @@ for file in ${sysusers_d}; do
 				[ "${id}" == '4294967295' ] && warninvalid && continue
 				[ "${home}" == '-' ] && home="/"
 				[ -z "${home}" ] && home="/"
-				add_group "${type}" "${name}" "${id}" "${gecos}" "${home}"
+				add_group "${type}" "${name}" "${id}"
 				[ "${id}" == '-' ] && id=$(getent group "${name}" | cut -d: -f3)
-				add_user "${type}" "${name}" "${id}" "${gecos}" "${home}"
+				add_user "${name}" "${id}" "${gecos}" "${home}"
 			;;
 			g)
 				[ "${id}" == '65535' ] && warninvalid && continue
 				[ "${id}" == '4294967295' ] && warninvalid && continue
 				[ "${home}" == '-' ] && home="/"
 				[ -z "${home}" ] && home="/"
-				add_group "${type}" "${name}" "${id}" "${gecos}" "${home}"
+				add_group "${type}" "${name}" "${id}"
 			;;
 			m)
-				add_group "${type}" "${name}" "${id}" "${gecos}" "${home}"
-				[ "${id}" == '-' ] && id=$(getent group "${name}" | cut -d: -f3)
+				add_group "${type}" "${name}" '-'
 				getent passwd "${name}" >/dev/null
 				if [ "$?" -ne 0 ]; then
-					useradd -rc "${gecos}" -g "${id}" -s '/sbin/nologin' "${name}"
+					useradd -r -g "${id}" -s '/sbin/nologin' "${name}"
 					passwd -l "${name}" &>/dev/null
 				else
 					usermod -a -G "${id}" "${name}"
 				fi
 			;;
 			r)
-				update_login_defs "${type}" "${name}" "${id}" "${gecos}" "${home}"
+				update_login_defs "${name}" "${id}"
 			;;
 			*) warninvalid; continue;;
 		esac
