@@ -31,9 +31,9 @@ add_user() {
 	getent passwd "${name}" >/dev/null
 	if [ "$?" -ne 0 ]; then
 		if [ "${id}" == '-' ]; then
-			useradd -rc "${gecos}" -u "${id}" -g "${name}" -d "${home}" -s '/sbin/nologin' "${name}"
-		else
 			useradd -rc "${gecos}" -g "${name}" -d "${home}" -s '/sbin/nologin' "${name}"
+		else
+			useradd -rc "${gecos}" -u "${id}" -g "${name}" -d "${home}" -s '/sbin/nologin' "${name}"
 		fi
 		passwd -l "${name}" &>/dev/null
 	fi
