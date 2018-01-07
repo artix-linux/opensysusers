@@ -17,7 +17,7 @@ add_group() {
 	getent group "${name}" >/dev/null
 	if [ "$?" -ne 0 ]; then
 		if [ "${id}" == '-' ]; then
-			groupadd "${name}"
+			groupadd -r "${name}"
 		else
 			if ! grep -qiw "${id}" /etc/group; then
 				groupadd -g "${id}" "${name}"
