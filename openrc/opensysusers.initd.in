@@ -12,6 +12,6 @@ depend()
 start()
 {
 	ebegin "Setting up sysusers.d entries"
-	@BINFILE@
+	@BINNAME@
 	eend $?
 }

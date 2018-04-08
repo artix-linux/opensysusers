@@ -1,5 +1,5 @@
-LIBS = common.sh
 CONFFILES = test/*
+SYSCONFDIR = /etc
 PREFIX = /usr/local
 BINDIR = /bin
 LIBDIR = /lib
@@ -11,20 +11,36 @@ CONFMODE = 0644
 DOCMODE = 0644
 INSTALL = install
 MAKE = make
-SYSTEMDCOMPAT = TRUE
-BINNAME = FALSE
-ifeq ($(SYSTEMDCOMPAT),TRUE)
-	BINPROGS = systemd-sysusers
+
+HAVESYSTEMD = TRUE
+HAVERC = TRUE
+
+LIBS = lib/common.sh
+INITD = openrc/opensysusers.initd
+
+ifeq ($(HAVESYSTEMD),TRUE)
+	BINPROGS = bin/systemd-sysusers
+	BINNAME = 'systemd-sysusers'
 else
-	BINPROGS = opensysusers
+	BINPROGS = bin/opensysusers
+	BINNAME = 'opensysusers'
 endif
 
-all:
+all:	$(BINPROGS) $(INITD)
 	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man
-	[ "${BINNAME}" != 'FALSE' ] && sed -e "s|@BINFILE@|$(BINNAME)|" openrc/opensysusers.initd.in | tee openrc/opensysusers.initd
-	[ "${BINNAME}" == 'FALSE' ] && sed -e "s|@BINFILE@|$(BINPROGS)|" openrc/opensysusers.initd.in | tee openrc/opensysusers.initd
+
+edit = sed -e "s|@LIBDIR[@]|$(DESTDIR)$(PREFIX)$(LIBDIR)|" \
+	-e "s|@BINNAME[@]|$(BINNAME)|g"
+
+%: %.in Makefile
+	@echo "GEN $@"
+	@$(RM) "$@"
+	@m4 -P $@.in | $(edit) >$@
+	@chmod a-w "$@"
+	@chmod +x "$@"
 
 clean:
+	rm -f $(BINPROGS) ${INITD}
 	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man clean
 
 install:
@@ -32,9 +48,17 @@ install:
 	$(INSTALL) -m $(BINMODE) $(BINPROGS) $(DESTDIR)$(PREFIX)$(BINDIR)
 	$(INSTALL) -d $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers
 	$(INSTALL) -m $(BINMODE) $(LIBS) $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers
-	for prog in ${BINPROGS}; do sed -e "s|@LIBDIR@|$(PREFIX)$(LIBDIR)|" -i $(DESTDIR)$(PREFIX)$(BINDIR)/$$prog; done
 	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man install
-	[ "${BINNAME}" != 'FALSE' ] && mv $(DESTDIR)$(PREFIX)$(BINDIR)/$(BINPROGS) $(DESTDIR)$(PREFIX)$(BINDIR)/$(BINNAME)
+
+	ifeq ($(HAVESYSTEMD),TRUE)
+		[ "${BINNAME}" != 'systemd-sysusers' ]  && mv $(DESTDIR)$(PREFIX)$(BINDIR)/$(BINPROGS) $(DESTDIR)$(PREFIX)$(BINDIR)/$(BINNAME)
+	endif
+
+	ifeq ($(HAVERC),TRUE)
+		$(INSTALL) -d $(DESTDIR)$(SYSCONFDIR)/{init.d,runlevels/boot}
+		$(INSTALL) -m $(BINMODE) $(INITD) $(DESTDIR)$(SYSCONFDIR)/init.d/opensysusers
+		ln -sf $(DESTDIR)$(SYSCONFDIR)/init.d/opensysusers $(DESTDIR)$(SYSCONFDIR)/runlevels/boot/
+	endif
 
 install-tests:
 	$(INSTALL) -d $(DESTDIR)$(PREFIX)$(CONFDIR)
@@ -45,6 +69,13 @@ uninstall:
 	for lib in ${LIBS}; do rm -f $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers/$$lib; done
 	rm -rf --one-file-system $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers
 	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man uninstall
-	[ "${BINNAME}" != 'FALSE' ] && rm -f $(DESTDIR)$(PREFIX)$(BINDIR)/$(BINNAME)
 
-.PHONY: all install install-tests uninstal
+	ifeq ($(HAVESYSTEMD),TRUE)
+		[ "${BINNAME}" != 'systemd-sysusers' ] && rm -f $(DESTDIR)$(PREFIX)$(BINDIR)/$(BINNAME)
+	endif
+
+	ifeq ($(HAVERC),TRUE)
+		for svc in ${INITD}; do rm -f $(DESTDIR)$(SYSCONFDIR)/init.d/$$lib; done
+	endif
+
+.PHONY: all install install-tests uninstall
