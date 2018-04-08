@@ -85,9 +85,11 @@ update_login_defs() {
 
 parse_file() {
 	local file="${1}"
-	while read cline; do
-		parse_string "${cline}"
-	done < ${file}
+	if [ -f ${file} ]; then
+		while read cline; do
+			parse_string "${cline}"
+		done < ${file}
+	fi
 }
 
 parse_string() {
@@ -150,4 +152,4 @@ parse_string() {
 }
 
 sysusers_dirs="${root}/usr/lib/sysusers.d ${root}/run/sysusers.d ${root}/etc/sysusers.d"
-sysusersver='0.4.1'
+sysusersver='0.4.2'

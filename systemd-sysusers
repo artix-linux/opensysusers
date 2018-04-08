@@ -84,6 +84,7 @@ fi
 
 if [ ${inline} -eq 0 ]; then
 	for file in "${args[@]}"; do
+		[ ${file} == '--' ] && continue
 		if [ ${file:0:1} != "/" ]; then
 			file="/${file}"
 		fi
