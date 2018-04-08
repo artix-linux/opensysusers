@@ -77,6 +77,11 @@ if [ ${version} -eq 1 ]; then
 	exit 0;
 fi
 
+if [ ${#args[@]} -eq 0 ]; then
+	source @BINDIR@/sysusers
+	exit 0;
+fi
+
 if [ ${inline} -eq 0 ]; then
 	for file in "${args[@]}"; do
 		parse_file "${file}"
@@ -84,6 +89,7 @@ if [ ${inline} -eq 0 ]; then
 	if [ "${replace}" != '' ]; then
 		source @BINDIR@/sysusers
 	fi
+	exit 0;
 else
 	for string in "${args[@]}"; do
 		parse_string "${string}"
@@ -91,6 +97,7 @@ else
 	if [ "${replace}" != '' ]; then
 		source @BINDIR@/sysusers
 	fi
+	exit 0;
 fi
 
 exit 0;
