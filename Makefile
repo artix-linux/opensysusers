@@ -12,6 +12,7 @@ DOCMODE = 0644
 INSTALL = install
 MAKE = make
 SYSTEMDCOMPAT = TRUE
+BINNAME = FALSE
 ifeq ($(SYSTEMDCOMPAT),TRUE)
 	BINPROGS = systemd-sysusers
 else
@@ -32,6 +33,7 @@ install:
 	$(INSTALL) -m $(BINMODE) $(LIBS) $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers
 	for prog in ${BINPROGS}; do sed -e "s|@LIBDIR@|$(PREFIX)$(LIBDIR)|" -i $(DESTDIR)$(PREFIX)$(BINDIR)/$$prog; done
 	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man install
+	[ "${BINNAME}" != 'FALSE' ] && mv $(DESTDIR)$(PREFIX)$(BINDIR)/$(BINPROGS) $(DESTDIR)$(PREFIX)$(BINDIR)/$(BINNAME)
 
 install-tests:
 	$(INSTALL) -d $(DESTDIR)$(PREFIX)$(CONFDIR)
@@ -42,5 +44,6 @@ uninstall:
 	for lib in ${LIBS}; do rm -f $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers/$$lib; done
 	rm -rf --one-file-system $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers
 	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man uninstall
+	[ "${BINNAME}" != 'FALSE' ] && rm -f $(DESTDIR)$(PREFIX)$(BINDIR)/$(BINNAME)
 
 .PHONY: all install install-tests uninstal
