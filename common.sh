@@ -188,4 +188,4 @@ sysusers_d=''
 replace=''
 
 sysusers_dirs="${root}/usr/lib/sysusers.d ${root}/run/sysusers.d ${root}/etc/sysusers.d"
-sysusersver='0.4.4'
+sysusersver='0.4.5'
