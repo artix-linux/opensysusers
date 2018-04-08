@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (c) 2018 Chris Cromer
+# Copyright (c) 2012 Gentoo Foundation
 # Released under the 2-clause BSD license.
 #
 # Common functions and variables needed by opensysusers
@@ -151,5 +152,40 @@ parse_string() {
 	esac
 }
 
+# this part is based on OpenRC's opentmpfiles
+# Build a list of sorted unique basenames
+# directories declared later in the sysusers_d array will override earlier
+# directories, on a per file basename basis.
+# `/etc/sysusers.d/foo.conf' supersedes `/usr/lib/sysusers.d/foo.conf'.
+# `/run/sysusers.d/foo.conf' will always be read after `/etc/sysusers.d/bar.conf'
+
+get_conf_files() {
+	for dir in ${sysusers_dirs}; do
+		[ -d "${dir}" ] && for file in "${dir}"/*.conf; do
+			[ "${replace}" != '' ] && [ "${dir}" == "$(dirname ${replace})" ] && [ "${file##*/}" == "${replace##*/}" ] && continue
+			[ -f "${file}" ] && sysusers_basenames="${sysusers_basenames}\n${file##*/}"
+		done
+	done
+	FILES="$(printf "${sysusers_basenames}\n" | sort -u )"
+}
+
+get_conf_paths() {
+	for b in ${FILES}; do
+		real_f=''
+		for d in ${sysusers_dirs}; do
+			[ "${replace}" != '' ] && [ "${d}" == "$(dirname ${replace})" ] && [ "${b}" == "${replace##*/}" ] && continue
+			f=${d}/${b}
+			[ -f "${f}" ] && real_f="${f}"
+		done
+		[ -f "${real_f}" ] && sysusers_d="${sysusers_d} ${real_f}"
+	done
+}
+
+error=0
+FILES=''
+sysusers_basenames=''
+sysusers_d=''
+replace=''
+
 sysusers_dirs="${root}/usr/lib/sysusers.d ${root}/run/sysusers.d ${root}/etc/sysusers.d"
-sysusersver='0.4.2'
+sysusersver='0.4.3'

@@ -1,0 +1,16 @@
+#!/bin/sh
+# Copyright (c) 2017 - 2018 Chris Cromer
+# Released under the 2-clause BSD license.
+#
+# This is an implementation of sysusers.d spec without systemd command
+
+source @LIBDIR@/opensysusers/common.sh
+
+get_conf_files
+get_conf_paths
+
+for file in ${sysusers_d}; do
+	parse_file ${file}
+done
+
+exit ${error}

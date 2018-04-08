@@ -30,13 +30,11 @@ if [ $? -ne 0 ]; then
 	exit 1;
 fi
 
-systemd=1
 arguments=()
 replace=''
-replace_file=''
-replace_dir=''
 version=0
 inline=0
+error=0
 root=''
 replace=''
 eval set -- "${TEMP}"
@@ -74,34 +72,51 @@ source @LIBDIR@/opensysusers/common.sh
 
 if [ ${version} -eq 1 ]; then
 	echo "${sysusersver}"
-	exit 0;
+	exit ${error};
 fi
 
 if [ ${#args[@]} -eq 0 ]; then
-	source @BINDIR@/sysusers
-	exit 0;
+	get_conf_files
+	get_conf_paths
+
+	for file in ${sysusers_d}; do
+		parse_file ${file}
+	done
+	exit ${error};
 fi
 
 if [ ${inline} -eq 0 ]; then
 	for file in "${args[@]}"; do
 		[ ${file} == '--' ] && continue
-		if [ ${file:0:1} != "/" ]; then
-			file="/${file}"
-		fi
-		parse_file "${file}"
+		for dir in ${sysusers_dirs}; do
+			if [ -f "${dir}/${file}" ]; then
+				parse_file "${dir}/${file}"
+				break
+			fi
+		done
 	done
 	if [ "${replace}" != '' ]; then
-		source @BINDIR@/sysusers
+		get_conf_files
+		get_conf_paths
+
+		for file in ${sysusers_d}; do
+			parse_file ${file}
+		done
 	fi
-	exit 0;
+	exit ${error};
 else
 	for string in "${args[@]}"; do
 		parse_string "${string}"
 	done
 	if [ "${replace}" != '' ]; then
-		source @BINDIR@/sysusers
+		get_conf_files
+		get_conf_paths
+
+		for file in ${sysusers_d}; do
+			parse_file ${file}
+		done
 	fi
-	exit 0;
+	exit ${error};
 fi
 
-exit 0;
+exit ${error};
