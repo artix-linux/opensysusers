@@ -1,4 +1,8 @@
 #!/bin/bash
+# Copyright (c) 2018 Chris Cromer
+# Released under the 2-clause BSD license.
+#
+# Common functions and variables needed by opensysusers
 
 die() {
 	echo ${@} 1>&2;
@@ -146,4 +150,4 @@ parse_string() {
 }
 
 sysusers_dirs="${root}/usr/lib/sysusers.d ${root}/run/sysusers.d ${root}/etc/sysusers.d"
-sysusersver='0.4.0'
+sysusersver='0.4.1'
