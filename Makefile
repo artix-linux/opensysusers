@@ -1,41 +1,41 @@
-binprogs = sysusers systemd-sysusers
-libs = common.sh
-conffiles = test/*
+BINPROGS = sysusers systemd-sysusers
+LIBS = common.sh
+CONFFILES = test/*
 PREFIX = /usr/local
 BINDIR = /bin
 LIBDIR = /lib
 MANDIR = /share/man
 DOCDIR = /share/doc/opensysusers
 CONFDIR = /run/sysusers.d
-binmode = 0755
-confmode = 0644
-docmode = 0644
-install = install
-make = make
+BINMODE = 0755
+CONFMODE = 0644
+DOCMODE = 0644
+INSTALL = install
+MAKE = make
 
 all:
-	$(make) -C man
+	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man
 
 clean:
-	$(make) $(install) docmode=$(docmode) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man clean
+	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man clean
 
 install:
-	$(install) -d $(DESTDIR)$(PREFIX)$(BINDIR)
-	$(install) -m $(binmode) $(binprogs) $(DESTDIR)$(PREFIX)$(BINDIR)
-	$(install) -d $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers
-	$(install) -m $(binmode) $(libs) $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers
-	for prog in ${binprogs}; do sed -e "s|@BINDIR@|$(BINDIR)|" -i $(DESTDIR)$(PREFIX)$(BINDIR)/$$prog; done
-	for prog in ${binprogs}; do sed -e "s|@LIBDIR@|$(LIBDIR)|" -i $(DESTDIR)$(PREFIX)$(BINDIR)/$$prog; done
-	$(make) $(install) docmode=$(docmode) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man install
+	$(INSTALL) -d $(DESTDIR)$(PREFIX)$(BINDIR)
+	$(INSTALL) -m $(BINMODE) $(BINPROGS) $(DESTDIR)$(PREFIX)$(BINDIR)
+	$(INSTALL) -d $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers
+	$(INSTALL) -m $(BINMODE) $(LIBS) $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers
+	for prog in ${BINPROGS}; do sed -e "s|@BINDIR@|$(PREFIX)$(BINDIR)|" -i $(DESTDIR)$(PREFIX)$(BINDIR)/$$prog; done
+	for prog in ${BINPROGS}; do sed -e "s|@LIBDIR@|$(PREFIX)$(LIBDIR)|" -i $(DESTDIR)$(PREFIX)$(BINDIR)/$$prog; done
+	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man install
 
 install-tests:
-	$(install) -d $(DESTDIR)$(PREFIX)$(CONFDIR)
-	$(install) -m $(confmode) $(conffiles) $(DESTDIR)$(PREFIX)$(CONFDIR)
+	$(INSTALL) -d $(DESTDIR)$(PREFIX)$(CONFDIR)
+	$(INSTALL) -m $(CONFMODE) $(CONFFILES) $(DESTDIR)$(PREFIX)$(CONFDIR)
 
 uninstall:
-	for prog in ${binprogs}; do rm -f $(DESTDIR)$(PREFIX)$(BINDIR)/$$prog; done
-	for lib in ${libs}; do rm -f $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers/$$lib; done
+	for prog in ${BINPROGS}; do rm -f $(DESTDIR)$(PREFIX)$(BINDIR)/$$prog; done
+	for lib in ${LIBS}; do rm -f $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers/$$lib; done
 	rm -rf --one-file-system $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers
-	$(make) $(install) docmode=$(docmode) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man uninstall
+	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man uninstall
 
-.PHONY: all install install-tests uninstall
+.PHONY: all install install-tests uninstal

@@ -23,11 +23,11 @@ clean:
 	rm $(docfiles)
 
 install:
-	$(install) -d $(DESTDIR)$(PREFIX)$(MANDIR)/man{5,8}
-	$(install) -m $(docmode) $(manfiles5) $(DESTDIR)$(PREFIX)$(MANDIR)/man5
-	$(install) -m $(docmode) $(manfiles8) $(DESTDIR)$(PREFIX)$(MANDIR)/man8
-	$(install) -d $(DESTDIR)$(PREFIX)$(DOCDIR)
-	$(install) -m $(docmode) $(docfiles) $(DESTDIR)$(PREFIX)$(DOCDIR)
+	$(INSTALL) -d $(DESTDIR)$(PREFIX)$(MANDIR)/man{5,8}
+	$(INSTALL) -m $(DOCMODE) $(manfiles5) $(DESTDIR)$(PREFIX)$(MANDIR)/man5
+	$(INSTALL) -m $(DOCMODE) $(manfiles8) $(DESTDIR)$(PREFIX)$(MANDIR)/man8
+	$(INSTALL) -d $(DESTDIR)$(PREFIX)$(DOCDIR)
+	$(INSTALL) -m $(DOCMODE) $(docfiles) $(DESTDIR)$(PREFIX)$(DOCDIR)
 
 uninstall:
 	for man in ${manfiles5}; do rm -f $(DESTDIR)$(PREFIX)$(MANDIR)/man5/$$man; done
