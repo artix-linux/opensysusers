@@ -21,7 +21,8 @@ endif
 
 all:
 	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man
-	sed -e "s|@BINFILE@|$(BINPROGS)|" openrc/opensysusers.initd.in | tee openrc/opensysusers.initd
+	[ "${BINNAME}" != 'FALSE' ] && sed -e "s|@BINFILE@|$(BINNAME)|" openrc/opensysusers.initd.in | tee openrc/opensysusers.initd
+	[ "${BINNAME}" == 'FALSE' ] && sed -e "s|@BINFILE@|$(BINPROGS)|" openrc/opensysusers.initd.in | tee openrc/opensysusers.initd
 
 clean:
 	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man clean
