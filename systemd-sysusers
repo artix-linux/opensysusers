@@ -84,6 +84,9 @@ fi
 
 if [ ${inline} -eq 0 ]; then
 	for file in "${args[@]}"; do
+		if [ ${file:0:1} != "/" ]; then
+			file="/${file}"
+		fi
 		parse_file "${file}"
 	done
 	if [ "${replace}" != '' ]; then
