@@ -1,0 +1,96 @@
+#!/bin/sh
+# Copyright (c) 2018 Chris Cromer
+# Released under the 2-clause BSD license.
+#
+# This is an implementation of the systemd-sysusers command
+
+usage() {
+	printf "systemd-sysusers\n\n"
+
+	printf "systemd-sysusers creates system users and groups, based on the file\n"
+    printf "format and location specified in sysusers.d(5).\n\n"
+
+	printf "Usage: /usr/bin/systemd-sysusers [OPTIONS...] [CONFIGFILE...]\n\n"
+
+	printf "Options:\n"
+	printf "  --root=root               All paths will be prefixed with the\n"
+    printf "                            given alternate root path, including\n"
+    printf "                            config search paths.\n"
+	printf "  --replace=PATH            Don't run check in the package\n"
+	printf "  --inline                  Treat each positional argument as a\n"
+	printf "                            separate configuration line instead of a\n"
+	printf "                            file name.\n"
+	printf "  -h, --help                Print a short help text and exit.\n"
+	printf "  --version                 Print a short version string and exit.\n"
+}
+
+TEMP=$(getopt -o "h" -l "root:,replace:,inline,help,version" -n "systemd-sysusers" -- "$@")
+if [ $? -ne 0 ]; then
+	usage
+	exit 1;
+fi
+
+systemd=1
+arguments=()
+replace=''
+replace_file=''
+replace_dir=''
+version=0
+inline=0
+root=''
+replace=''
+eval set -- "${TEMP}"
+unset TEMP
+
+while true; do
+	case "${1}" in
+		-h|--help)
+			usage
+			exit 0;
+			shift;
+			;;
+		--root)
+			root="${2}"
+			shift 2;
+			;;
+		--replace)
+			replace="${2}"
+			shift 2;
+			;;
+		--inline)
+			inline=1
+			shift;
+			;;
+		--version)
+			version=1
+			shift;
+			;;
+		--) args=("${@}"); shift; break;;
+		*) break;;
+	esac
+done
+
+source @LIBDIR@/opensysusers/common.sh
+
+if [ ${version} -eq 1 ]; then
+	echo "${sysusersver}"
+	exit 0;
+fi
+
+if [ ${inline} -eq 0 ]; then
+	for file in "${args[@]}"; do
+		parse_file "${file}"
+	done
+	if [ "${replace}" != '' ]; then
+		source @BINDIR@/sysusers
+	fi
+else
+	for string in "${args[@]}"; do
+		parse_string "${string}"
+	done
+	if [ "${replace}" != '' ]; then
+		source @BINDIR@/sysusers
+	fi
+fi
+
+exit 0;
