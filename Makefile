@@ -68,12 +68,12 @@ install-tests:
 	$(INSTALL) -m $(CONFMODE) $(CONFFILES) $(DESTDIR)$(PREFIX)$(CONFDIR)
 
 uninstall-shared:
-	for lib in ${LIBS}; do rm -f $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers/$$lib; done
+	for lib in $(notdir ${LIBS}); do rm -f $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers/$$lib; done
 	rm -rf --one-file-system $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers
 	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man uninstall
 
 uninstall-default-bin:
-	rm -f $(DESTDIR)$(PREFIX)/$(BINPROGS)
+	rm -f $(DESTDIR)$(PREFIX)$(BINDIR)/$(notdir $(BINPROGS))
 
 uninstall-custom-bin:
 	rm -f $(DESTDIR)$(PREFIX)$(BINDIR)/$(BINNAME)
