@@ -20,10 +20,10 @@ INITD = openrc/opensysusers.initd
 
 ifeq ($(HAVESYSTEMD),TRUE)
 	BINPROGS = bin/systemd-sysusers
-	BINNAME = 'systemd-sysusers'
+	BINNAME = systemd-sysusers
 else
 	BINPROGS = bin/opensysusers
-	BINNAME = 'opensysusers'
+	BINNAME = opensysusers
 endif
 
 
