@@ -1,3 +1,4 @@
+VERSION = 0.4.6
 CONFFILES = test/*
 SYSCONFDIR = /etc
 PREFIX = /usr/local
@@ -31,7 +32,8 @@ all: $(BINPROGS) $(INITD)
 	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man
 
 edit = sed -e "s|@LIBDIR[@]|$(PREFIX)$(LIBDIR)|" \
-	-e "s|@BINNAME[@]|$(BINNAME)|g"
+	-e "s|@BINNAME[@]|$(BINNAME)|g" \
+	-e "s|@VERSION[@]|$(VERSION)|g"
 
 %: %.in Makefile
 	@echo "GEN $@"

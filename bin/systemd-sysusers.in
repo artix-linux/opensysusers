@@ -4,6 +4,8 @@
 #
 # This is an implementation of the systemd-sysusers command
 
+sysusersver=@VERSION@
+
 usage() {
 	printf "@BINNAME@\n\n"
 
