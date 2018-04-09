@@ -44,15 +44,17 @@ clean:
 	rm -f $(BINPROGS) ${INITD}
 	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man clean
 
-install-default:
+install-shared:
 	$(INSTALL) -d $(DESTDIR)$(PREFIX)$(BINDIR)
-	$(INSTALL) -m $(BINMODE) $(BINPROGS) $(DESTDIR)$(PREFIX)$(BINDIR)
 	$(INSTALL) -d $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers
 	$(INSTALL) -m $(BINMODE) $(LIBS) $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers
 	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man install
 
-install-systemd:
-	mv $(DESTDIR)$(PREFIX)/$(BINPROGS) $(DESTDIR)$(PREFIX)$(BINDIR)/$(BINNAME)
+install-default-bin:
+	$(INSTALL) -m $(BINMODE) $(BINPROGS) $(DESTDIR)$(PREFIX)$(BINDIR)
+
+install-custom-bin:
+	$(INSTALL) -m $(BINMODE) $(BINPROGS) $(DESTDIR)$(PREFIX)$(BINDIR)/$(BINNAME)
 
 install_rc:
 	$(INSTALL) -d $(DESTDIR)$(SYSCONFDIR)/{init.d,runlevels/boot}
@@ -63,25 +65,30 @@ install-tests:
 	$(INSTALL) -d $(DESTDIR)$(PREFIX)$(CONFDIR)
 	$(INSTALL) -m $(CONFMODE) $(CONFFILES) $(DESTDIR)$(PREFIX)$(CONFDIR)
 
-uninstall-systemd:
+uninstall-shared:
+	for lib in ${LIBS}; do rm -f $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers/$$lib; done
+	rm -rf --one-file-system $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers
+	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man uninstall
+
+uninstall-default-bin:
+	rm -f $(DESTDIR)$(PREFIX)/$(BINPROGS)
+
+uninstall-custom-bin:
 	rm -f $(DESTDIR)$(PREFIX)$(BINDIR)/$(BINNAME)
 
 uninstall-rc:
 	rm -f $(DESTDIR)$(SYSCONFDIR)/init.d/opensysusers
 	rm -f $(DESTDIR)$(SYSCONFDIR)/runlevels/boot/opensysusers
 
-uninstall-default:
-	for prog in ${BINPROGS}; do rm -f $(DESTDIR)$(PREFIX)$(BINDIR)/$$prog; done
-	for lib in ${LIBS}; do rm -f $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers/$$lib; done
-	rm -rf --one-file-system $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers
-	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man uninstall
-
 ifeq ($(HAVESYSTEMD),TRUE)
-install: install-default
-uninstall: uninstall-default
-ifneq ($(BINNAME),systemd-sysusers)
-install: install-systemd
-uninstall: uninstall-systemd
+install: install-shared
+uninstall: uninstall-shared
+ifeq ($(BINNAME),systemd-sysusers)
+install: install-default-bin
+uninstall: uninstall-default-bin
+else
+install: install-custom-bin
+uninstall: uninstall-custom-bin
 endif
 
 ifeq ($(HAVERC),TRUE)
@@ -90,8 +97,8 @@ uninstall: uninstall-rc
 endif
 
 else
-install: install-default
-uninstall: uninstall-default
+install: install-shared install-default-bin
+uninstall: uninstall-shared uninstall-default-bin
 
 ifeq ($(HAVERC),TRUE)
 install: install_rc
