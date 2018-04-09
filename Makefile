@@ -30,7 +30,7 @@ endif
 all: $(BINPROGS) $(INITD)
 	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man
 
-edit = sed -e "s|@LIBDIR[@]|$(DESTDIR)$(PREFIX)$(LIBDIR)|" \
+edit = sed -e "s|@LIBDIR[@]|$(PREFIX)$(LIBDIR)|" \
 	-e "s|@BINNAME[@]|$(BINNAME)|g"
 
 %: %.in Makefile
