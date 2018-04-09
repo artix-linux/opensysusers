@@ -44,26 +44,6 @@ clean:
 	rm -f $(BINPROGS) ${INITD}
 	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man clean
 
-ifeq ($(HAVESYSTEMD),TRUE)
-install: install-default install-systemd
-uninstall: uninstall-default uninstall-systemd
-
-ifeq ($(HAVERC),TRUE)
-install: install_rc
-uninstall: uninstall-rc
-endif
-
-else
-install: install-default
-uninstall: uninstall-default
-
-ifeq ($(HAVERC),TRUE)
-install: install_rc
-uninstall: uninstall-rc
-endif
-
-endif
-
 install-default:
 	$(INSTALL) -d $(DESTDIR)$(PREFIX)$(BINDIR)
 	$(INSTALL) -m $(BINMODE) $(BINPROGS) $(DESTDIR)$(PREFIX)$(BINDIR)
@@ -95,5 +75,29 @@ uninstall-default:
 	for lib in ${LIBS}; do rm -f $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers/$$lib; done
 	rm -rf --one-file-system $(DESTDIR)$(PREFIX)$(LIBDIR)/opensysusers
 	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(DOCMODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) PREFIX=$(PREFIX) DESTDIR=$(DESTDIR) -C man uninstall
+
+ifeq ($(HAVESYSTEMD),TRUE)
+install: install-default
+uninstall: uninstall-default
+ifneq ($(BINNAME),systemd-sysusers)
+install: install-systemd
+uninstall: uninstall-systemd
+endif
+
+ifeq ($(HAVERC),TRUE)
+install: install_rc
+uninstall: uninstall-rc
+endif
+
+else
+install: install-default
+uninstall: uninstall-default
+
+ifeq ($(HAVERC),TRUE)
+install: install_rc
+uninstall: uninstall-rc
+endif
+
+endif
 
 .PHONY: all install install-tests uninstall
