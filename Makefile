@@ -21,8 +21,8 @@ LIBS = lib/common.sh
 INITD = openrc/opensysusers.initd
 
 ifeq ($(HAVESYSTEMD),yes)
-	BINPROGS = bin/systemd-sysusers
-	BINNAME = systemd-sysusers
+	BINPROGS = bin/sysusers
+	BINNAME = sysusers
 else
 	BINPROGS = bin/opensysusers
 	BINNAME = opensysusers
