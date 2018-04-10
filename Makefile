@@ -119,7 +119,7 @@ ifeq ($(HAVEMAN),yes)
 install: install-man
 uninstall: uninstall-man
 endif
-ifeq ($(BINNAME),systemd-sysusers)
+ifeq ($(BINNAME),sysusers)
 install: install-default-bin
 uninstall: uninstall-default-bin
 else
