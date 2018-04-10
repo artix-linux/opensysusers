@@ -23,16 +23,16 @@ clean:
 	rm $(docfiles)
 
 install:
-	$(INSTALL) -d $(DESTDIR)$(PREFIX)$(MANDIR)/man{5,8}
-	$(INSTALL) -m $(DOCMODE) $(manfiles5) $(DESTDIR)$(PREFIX)$(MANDIR)/man5
-	$(INSTALL) -m $(DOCMODE) $(manfiles8) $(DESTDIR)$(PREFIX)$(MANDIR)/man8
-	$(INSTALL) -d $(DESTDIR)$(PREFIX)$(DOCDIR)
-	$(INSTALL) -m $(DOCMODE) $(docfiles) $(DESTDIR)$(PREFIX)$(DOCDIR)
+	$(INSTALL) -d $(DESTDIR)$(MANDIR)/man{5,8}
+	$(INSTALL) -m $(DOCMODE) $(manfiles5) $(DESTDIR)$(MANDIR)/man5
+	$(INSTALL) -m $(DOCMODE) $(manfiles8) $(DESTDIR)$(MANDIR)/man8
+	$(INSTALL) -d $(DESTDIR)$(DOCDIR)
+	$(INSTALL) -m $(DOCMODE) $(docfiles) $(DESTDIR)$(DOCDIR)
 
 uninstall:
-	for man in ${manfiles5}; do rm -f $(DESTDIR)$(PREFIX)$(MANDIR)/man5/$$man; done
-	for man in ${manfiles8}; do rm -f $(DESTDIR)$(PREFIX)$(MANDIR)/man8/$$man; done
-	for doc in ${docfiles}; do rm -f $(DESTDIR)$(PREFIX)$(DOCDIR)/$$doc; done
-	rm -rf --one-file-system $(DESTDIR)$(PREFIX)$(DOCDIR)
+	for man in ${manfiles5}; do rm -f $(DESTDIR)$(MANDIR)/man5/$$man; done
+	for man in ${manfiles8}; do rm -f $(DESTDIR)$(MANDIR)/man8/$$man; done
+	for doc in ${docfiles}; do rm -f $(DESTDIR)$(DOCDIR)/$$doc; done
+	rm -rf --one-file-system $(DESTDIR)$(DOCDIR)
 
 .PHONY: all install clean
