@@ -88,6 +88,7 @@ parse_file() {
 	local file="${1}"
 	if [ -f ${file} ]; then
 		while read cline; do
+            [[ "${cline}" =~ ^#.*$ ]] && continue
 			parse_string "${cline}"
 		done < ${file}
 	fi
