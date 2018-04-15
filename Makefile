@@ -27,6 +27,7 @@ else
 	BINPROGS = bin/opensysusers
 	BINNAME = opensysusers
 endif
+BINNAME = $(BINPROGS)
 
 TESTFILES = $(wildcard test/*.conf)
 
