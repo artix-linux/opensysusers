@@ -1,4 +1,4 @@
-VERSION = 0.4.6
+VERSION = 0.4.7
 SYSCONFDIR = /etc
 ifdef PREFIX
 PREFIX = /usr/local
@@ -27,7 +27,6 @@ else
 	BINPROGS = bin/opensysusers
 	BINNAME = opensysusers
 endif
-BINNAME = $(BINPROGS)
 
 TESTFILES = $(wildcard test/*.conf)
 

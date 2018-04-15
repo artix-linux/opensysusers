@@ -1,4 +1,6 @@
 man/*.5
 man/*.8
 man/*.html
+bin/sysusers
+bin/opensysusers
 openrc/opensysusers.initd
