@@ -4,13 +4,15 @@
 #
 # This is an implementation of the systemd-sysusers command
 
-usage() {
-	printf "systemd-sysusers\n\n"
+sysusersver=@VERSION@
 
-	printf "systemd-sysusers creates system users and groups, based on the file\n"
+usage() {
+	printf "@BINNAME@\n\n"
+
+	printf "@BINNAME@ creates system users and groups, based on the file\n"
     printf "format and location specified in sysusers.d(5).\n\n"
 
-	printf "Usage: /usr/bin/systemd-sysusers [OPTIONS...] [CONFIGFILE...]\n\n"
+	printf "Usage: /usr/bin/@BINNAME@ [OPTIONS...] [CONFIGFILE...]\n\n"
 
 	printf "Options:\n"
 	printf "  --root=root               All paths will be prefixed with the\n"
@@ -24,7 +26,7 @@ usage() {
 	printf "  --version                 Print a short version string and exit.\n"
 }
 
-TEMP=$(getopt -o "h" -l "root:,replace:,inline,help,version" -n "systemd-sysusers" -- "$@")
+TEMP=$(getopt -o "h" -l "root:,replace:,inline,help,version" -n "@BINNAME@" -- "$@")
 if [ $? -ne 0 ]; then
 	usage
 	exit 1;

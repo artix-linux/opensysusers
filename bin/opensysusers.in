@@ -4,6 +4,8 @@
 #
 # This is an implementation of sysusers.d spec without systemd command
 
+sysusersver=@VERSION@
+
 source @LIBDIR@/opensysusers/common.sh
 
 get_conf_files
