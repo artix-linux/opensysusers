@@ -14,8 +14,8 @@ INSTALL = install
 MAKE = make
 
 HAVESYSTEMD = yes
-HAVERC = yes
-HAVEMAN = no
+HAVEOPENRC = no
+HAVEMAN = yes
 
 LIBS = lib/common.sh
 INITD = openrc/opensysusers.initd
@@ -32,7 +32,7 @@ BINNAME = $(BINPROGS)
 TESTFILES = $(wildcard test/*.conf)
 
 all: $(BINPROGS)
-ifeq ($(HAVERC),yes)
+ifeq ($(HAVEOPENRC),yes)
 all: $(INITD)
 endif
 ifeq ($(HAVEMAN),yes)
@@ -60,15 +60,15 @@ CHMODX = chmod +x
 clean-bin:
 	$(RM) $(BINPROGS)
 
-clean-rc:
+clean-openrc:
 	$(RM) $(INITD)
 
 clean-man:
 	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(MODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) DESTDIR=$(DESTDIR) -C man clean
 
 clean: clean-bin
-ifeq ($(HAVERC),yes)
-clean: clean-rc
+ifeq ($(HAVEOPENRC),yes)
+clean: clean-openrc
 endif
 ifeq ($(HAVEMAN),yes)
 clean: clean-man
@@ -85,7 +85,7 @@ install-default-bin:
 install-custom-bin:
 	$(INSTALL) -m $(BINMODE) $(BINPROGS) $(DESTDIR)$(BINDIR)/$(BINNAME)
 
-install_rc:
+install-openrc:
 	$(INSTALL) -d $(DESTDIR)$(SYSCONFDIR)/{init.d,runlevels/boot}
 	$(INSTALL) -m $(BINMODE) $(INITD) $(DESTDIR)$(SYSCONFDIR)/init.d/opensysusers
 	ln -sf $(DESTDIR)$(SYSCONFDIR)/init.d/opensysusers $(DESTDIR)$(SYSCONFDIR)/runlevels/boot/
@@ -107,7 +107,7 @@ uninstall-default-bin:
 uninstall-custom-bin:
 	$(RM) $(DESTDIR)$(BINDIR)/$(BINNAME)
 
-uninstall-rc:
+uninstall-openrc:
 	$(RM) $(DESTDIR)$(SYSCONFDIR)/init.d/opensysusers
 	$(RM) $(DESTDIR)$(SYSCONFDIR)/runlevels/boot/opensysusers
 
@@ -129,9 +129,9 @@ install: install-custom-bin
 uninstall: uninstall-custom-bin
 endif
 
-ifeq ($(HAVERC),yes)
-install: install_rc
-uninstall: uninstall-rc
+ifeq ($(HAVEOPENRC),yes)
+install: install-openrc
+uninstall: uninstall-openrc
 endif
 
 else
@@ -141,11 +141,11 @@ ifeq ($(HAVEMAN),yes)
 install: install-man
 uninstall: uninstall-man
 endif
-ifeq ($(HAVERC),yes)
-install: install_rc
-uninstall: uninstall-rc
+ifeq ($(HAVEOPENRC),yes)
+install: install-openrc
+uninstall: uninstall-openrc
 endif
 
 endif
 
-.PHONY: all install install-tests uninstall
+.PHONY: all install install-custom-bin install-default-bin install-man install-openrc install-shared install-tests uninstall uninstall-custom-bin uninstall-default-bin uninstall-man uninstall-openrc uninstall-shared clean clean-bin clean-man clean-openrc
