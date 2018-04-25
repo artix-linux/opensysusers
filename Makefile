@@ -85,9 +85,8 @@ install-custom-bin:
 	$(INSTALL) -m $(BINMODE) $(BINPROGS) $(DESTDIR)$(BINDIR)/$(BINNAME)
 
 install-openrc:
-	$(INSTALL) -d $(DESTDIR)$(SYSCONFDIR)/{init.d,runlevels/boot}
+	$(INSTALL) -d $(DESTDIR)$(SYSCONFDIR)/init.d
 	$(INSTALL) -m $(BINMODE) $(INITD) $(DESTDIR)$(SYSCONFDIR)/init.d/opensysusers
-	ln -sf $(DESTDIR)$(SYSCONFDIR)/init.d/opensysusers $(DESTDIR)$(SYSCONFDIR)/runlevels/boot/
 
 install-man:
 	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(MODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) DESTDIR=$(DESTDIR) -C man install
@@ -108,7 +107,6 @@ uninstall-custom-bin:
 
 uninstall-openrc:
 	$(RM) $(DESTDIR)$(SYSCONFDIR)/init.d/opensysusers
-	$(RM) $(DESTDIR)$(SYSCONFDIR)/runlevels/boot/opensysusers
 
 uninstall-man:
 	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(MODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) DESTDIR=$(DESTDIR) -C man uninstall
