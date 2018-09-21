@@ -50,11 +50,11 @@ clean-man:
 clean: clean-bin clean-openrc clean-man
 
 install-shared:
-	$(INSTALL) -d $(DESTDIR)$(BINDIR)
 	$(INSTALL) -d $(DESTDIR)$(LIBDIR)/opensysusers
 	$(INSTALL) -m $(BINMODE) $(LIBS) $(DESTDIR)$(LIBDIR)/opensysusers
 
 install-default-bin:
+	$(INSTALL) -d $(DESTDIR)$(BINDIR)
 	$(INSTALL) -m $(BINMODE) $(BINPROGS) $(DESTDIR)$(BINDIR)
 
 install-openrc:
