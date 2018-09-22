@@ -1,4 +1,4 @@
-VERSION = 0.4.7
+VERSION = 0.4.8
 SYSCONFDIR = /etc
 ifdef PREFIX
 PREFIX = /usr/local
