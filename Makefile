@@ -1,8 +1,6 @@
-VERSION = 0.4.9
+VERSION = 0.5
 SYSCONFDIR = /etc
-ifdef PREFIX
-PREFIX = /usr/local
-endif
+PREFIX ?= /usr/local
 BINDIR = $(PREFIX)/bin
 LIBDIR = $(PREFIX)/lib
 MANDIR = $(PREFIX)/share/man
@@ -19,6 +17,8 @@ HAVEMAN = yes
 
 LIBS = lib/common.sh
 INITD = openrc/opensysusers.initd
+
+BASIC = sysusers.d/basic.conf
 
 ifeq ($(HAVESYSTEMD),yes)
 	BINPROGS = bin/sysusers
@@ -76,6 +76,8 @@ endif
 install-shared:
 	$(INSTALL) -d $(DESTDIR)$(LIBDIR)/opensysusers
 	$(INSTALL) -m $(BINMODE) $(LIBS) $(DESTDIR)$(LIBDIR)/opensysusers
+	$(INSTALL) -d $(DESTDIR)$(LIBDIR)/sysusers.d
+	$(INSTALL) -m $(BINMODE) $(BASIC) $(DESTDIR)$(LIBDIR)/sysusers.d
 
 install-default-bin:
 	$(INSTALL) -d $(DESTDIR)$(BINDIR)
@@ -98,6 +100,7 @@ install-tests:
 uninstall-shared:
 	for lib in $(notdir ${LIBS}); do $(RM) $(DESTDIR)$(LIBDIR)/opensysusers/$$lib; done
 	$(RM)r --one-file-system $(DESTDIR)$(LIBDIR)/opensysusers
+	for f in $(notdir ${LIBS}); do $(RM) $(DESTDIR)$(LIBDIR)/sysusers.d/$$f; done
 
 uninstall-default-bin:
 	$(RM) $(DESTDIR)$(BINDIR)/$(notdir $(BINPROGS))
