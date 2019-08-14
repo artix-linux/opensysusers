@@ -65,7 +65,7 @@ while true; do
 			version=1
 			shift;
 			;;
-		--) args=("${@}"); shift;  break;;
+		--) shift; args=("${@}"); break;;
 		*) break;;
 	esac
 done
