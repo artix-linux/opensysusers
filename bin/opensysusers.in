@@ -4,15 +4,16 @@
 #
 # This is an implementation of sysusers.d spec without systemd command
 
-sysusersver=@VERSION@
-
-source @LIBDIR@/opensysusers/common.sh
+# shellcheck source=lib/common.sh
+. @LIBDIR@/opensysusers/common.sh
 
 get_conf_files
 get_conf_paths
 
+IFS=':'
 for file in ${sysusers_d}; do
-	parse_file ${file}
+	IFS="${_IFS}"
+	parse_file "${file}"
 done
 
-exit ${error}
+exit "${error}"

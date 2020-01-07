@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2018 Chris Cromer
 # Released under the 2-clause BSD license.
 #
@@ -7,118 +7,107 @@
 sysusersver=@VERSION@
 
 usage() {
-	printf "@BINNAME@\n\n"
-
-	printf "@BINNAME@ creates system users and groups, based on the file\n"
-    printf "format and location specified in sysusers.d(5).\n\n"
-
-	printf "Usage: /usr/bin/@BINNAME@ [OPTIONS...] [CONFIGFILE...]\n\n"
-
-	printf "Options:\n"
-	printf "  --root=root               All paths will be prefixed with the\n"
-    printf "                            given alternate root path, including\n"
-    printf "                            config search paths.\n"
-	printf "  --replace=PATH            Don't run check in the package\n"
-	printf "  --inline                  Treat each positional argument as a\n"
-	printf "                            separate configuration line instead of a\n"
-	printf "                            file name.\n"
-	printf "  -h, --help                Print a short help text and exit.\n"
-	printf "  --version                 Print a short version string and exit.\n"
+	printf '%s\n' \
+		'@BINNAME@' '' \
+		'@BINNAME@ creates system users and groups, based on the file' \
+		'format and location specified in sysusers.d(5).' '' \
+		'Usage: /usr/bin/@BINNAME@ [OPTIONS...] [CONFIGFILE...]' '' \
+		'Options:' \
+		'  --root=root               All paths will be prefixed with the' \
+		'                            given alternate root path, including' \
+		'                            config search paths.' \
+		"  --replace=PATH            Don't run check in the package" \
+		'  --inline                  Treat each positional argument as a' \
+		'                            separate configuration line instead of a' \
+		'                            file name.' \
+		'  -h, --help                Print a short help text and exit.' \
+		'  --version                 Print a short version string and exit.'
+	exit "$1"
 }
 
-TEMP=$(getopt -o "h" -l "root:,replace:,inline,help,version" -n "@BINNAME@" -- "$@")
-if [ $? -ne 0 ]; then
-	usage
-	exit 1;
-fi
-
-arguments=()
 replace=''
-version=0
 inline=0
-error=0
 root=''
 replace=''
-eval set -- "${TEMP}"
-unset TEMP
 
-while true; do
-	case "${1}" in
-		-h|--help)
-			usage
-			exit 0;
-			shift;
-			;;
+while :; do
+	case "$1" in
+		-h|--help) usage 0 ;;
+		--root=*) root="${1#--root=}" ;;
 		--root)
-			root="${2}"
-			shift 2;
+			root="$2"
+			shift
 			;;
+		--replace=*) replace="${1#--replace=}" ;;
 		--replace)
-			replace="${2}"
-			shift 2;
+			replace="$2"
+			shift
 			;;
-		--inline)
-			inline=1
-			shift;
-			;;
+		--inline) inline=1 ;;
 		--version)
-			version=1
-			shift;
+			printf '%s\n' "${sysusersver}"
+			exit 0
 			;;
-		--) shift; args=("${@}"); break;;
-		*) break;;
+		--) shift; break ;;
+		-*) usage 1 ;;
+		*) break ;;
 	esac
+	shift
 done
 
-source @LIBDIR@/opensysusers/common.sh
+# shellcheck source=lib/common.sh
+. @LIBDIR@/opensysusers/common.sh
 
-if [ ${version} -eq 1 ]; then
-	echo "${sysusersver}"
-	exit ${error};
-fi
-
-if [ ${#args[@]} -eq 0 ]; then
+if [ "$#" -eq 0 ]; then
 	get_conf_files
 	get_conf_paths
 
+	IFS=':'
 	for file in ${sysusers_d}; do
-		parse_file ${file}
+		IFS="${_IFS}"
+		parse_file "${file}"
 	done
-	exit ${error};
+	exit "${error}"
 fi
 
-if [ ${inline} -eq 0 ]; then
-	for file in "${args[@]}"; do
-		[ ${file} == '--' ] && continue
+if [ "${inline}" -eq 0 ]; then
+	for file in "$@"; do
+		[ "${file}" = '--' ] && continue
+		IFS=':'
 		for dir in ${sysusers_dirs}; do
 			if [ -f "${dir}/${file}" ]; then
 				parse_file "${dir}/${file}"
 				break
 			fi
 		done
+		IFS="${_IFS}"
 	done
-	if [ "${replace}" != '' ]; then
+	if [ -n "${replace}" ]; then
 		get_conf_files
 		get_conf_paths
 
+		IFS=':'
 		for file in ${sysusers_d}; do
-			parse_file ${file}
+			parse_file "${file}"
 		done
+		IFS="${_IFS}"
 	fi
-	exit ${error};
+	exit "${error}"
 else
-	for string in "${args[@]}"; do
+	for string in "$@"; do
 		parse_string "${string}"
 	done
-	if [ "${replace}" != '' ]; then
+	if [ -n "${replace}" ]; then
 		get_conf_files
 		get_conf_paths
 
+		IFS=':'
 		for file in ${sysusers_d}; do
-			parse_file ${file}
+			parse_file "${file}"
 		done
+		IFS="${_IFS}"
 	fi
-	exit ${error};
+	exit "${error}"
 fi
 
-exit ${error};
+exit "${error}"
