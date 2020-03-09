@@ -23,7 +23,7 @@ clean:
 	rm $(docfiles)
 
 install:
-	$(INSTALL) -d $(DESTDIR)$(MANDIR)/man{5,8}
+	$(INSTALL) -d $(DESTDIR)$(MANDIR)/man5 $(DESTDIR)$(MANDIR)/man8
 	$(INSTALL) -m $(DOCMODE) $(manfiles5) $(DESTDIR)$(MANDIR)/man5
 	$(INSTALL) -m $(DOCMODE) $(manfiles8) $(DESTDIR)$(MANDIR)/man8
 	$(INSTALL) -d $(DESTDIR)$(DOCDIR)
