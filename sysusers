@@ -60,6 +60,7 @@ parse_file() {
 		while read -r line; do
 			parse_string "${line}" "$((lineno += 1))"
 		done < "${conf}"
+		[ -n "${line}" ] && parse_string "${line}"
 	done
 }
 
@@ -140,6 +141,7 @@ if [ "${inline}" -eq 0 ]; then
 		[ "${file}" = '--' ] && continue
 		for dir in etc run usr/lib; do
 			if [ -f "${root}/${dir}/sysusers.d/${file}" ]; then
+				sed -i -e '$a\' "${root}/${dir}/sysusers.d/${file}"
 				printf '%s/%s/sysusers.d/%s\n' "${root}" "${dir}" "${file}" |
 					parse_file
 				break
