@@ -76,7 +76,6 @@ parse_string() {
 			[ "${home:--}" = '-' ] && home='/'
 			add_group "${name}" "${id}"
 			if [ "${type}" = u ]; then
-				[ "${id}" = '-' ] && id="$(id -g "${name}")"
 				add_user "${name}" "${id}" "${gecos}" "${home}"
 			fi
 		;;
