@@ -1,4 +1,3 @@
-VERSION = 0.5
 SYSCONFDIR = /etc
 PREFIX ?= /usr/local
 BINDIR = $(PREFIX)/bin
@@ -15,22 +14,19 @@ HAVESYSTEMD = yes
 HAVEOPENRC = no
 HAVEMAN = yes
 
-LIBS = lib/common.sh
-INITD = openrc/opensysusers.initd
+INITD = opensysusers.initd
 
-BASIC = sysusers.d/basic.conf
+BASIC = basic.conf
 
 ifeq ($(HAVESYSTEMD),yes)
-	BINPROGS = bin/sysusers
 	BINNAME = sysusers
 else
-	BINPROGS = bin/opensysusers
 	BINNAME = opensysusers
 endif
 
 TESTFILES = $(wildcard test/*.conf)
 
-all: $(BINPROGS)
+all: sysusers
 ifeq ($(HAVEOPENRC),yes)
 all: $(INITD)
 endif
@@ -39,25 +35,19 @@ all:
 	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(MODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) DESTDIR=$(DESTDIR) -C man
 endif
 
-
-EDIT = sed -e "s|@LIBDIR[@]|$(LIBDIR)|" \
-	-e "s|@BINNAME[@]|$(BINNAME)|g" \
-	-e "s|@VERSION[@]|$(VERSION)|"
+EDIT = sed "s|@BINNAME[@]|$(BINNAME)|"
 
 RM = rm -f
-M4 = m4 -P
-CHMODAW = chmod a-w
-CHMODX = chmod +x
+CHMOD = chmod $(BINMODE)
 
-%: %.in Makefile
+opensysusers: sysusers
+	$(INSTALL) $< $@
+
+$(INITD): $(INITD).in
 	@echo "GEN $@"
 	@$(RM) "$@"
-	@$(M4) $@.in | $(EDIT) >$@
-	@$(CHMODAW) "$@"
-	@$(CHMODX) "$@"
-
-clean-bin:
-	$(RM) $(BINPROGS)
+	@$(EDIT) $< >"$@"
+	@$(CHMOD) "$@"
 
 clean-openrc:
 	$(RM) $(INITD)
@@ -74,36 +64,28 @@ clean: clean-man
 endif
 
 install-shared:
-	$(INSTALL) -d $(DESTDIR)$(LIBDIR)/opensysusers
-	$(INSTALL) -m $(BINMODE) $(LIBS) $(DESTDIR)$(LIBDIR)/opensysusers
-	$(INSTALL) -d $(DESTDIR)$(LIBDIR)/sysusers.d
-	$(INSTALL) -m $(BINMODE) $(BASIC) $(DESTDIR)$(LIBDIR)/sysusers.d
+	$(INSTALL) -Dm $(MODE) $(BASIC) $(DESTDIR)$(LIBDIR)/sysusers.d/$(BASIC)
 
-install-default-bin:
-	$(INSTALL) -d $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m $(BINMODE) $(BINPROGS) $(DESTDIR)$(BINDIR)
+install-default-bin: sysusers
+	$(INSTALL) -Dm $(BINMODE) sysusers $(DESTDIR)$(BINDIR)/$(BINNAME)
 
-install-custom-bin:
-	$(INSTALL) -m $(BINMODE) $(BINPROGS) $(DESTDIR)$(BINDIR)/$(BINNAME)
+install-custom-bin: sysusers
+	$(INSTALL) -Dm $(BINMODE) sysusers $(DESTDIR)$(BINDIR)/$(BINNAME)
 
-install-openrc:
-	$(INSTALL) -d $(DESTDIR)$(SYSCONFDIR)/init.d
-	$(INSTALL) -m $(BINMODE) $(INITD) $(DESTDIR)$(SYSCONFDIR)/init.d/opensysusers
+install-openrc: $(INITD)
+	$(INSTALL) -Dm $(BINMODE) $(INITD) $(DESTDIR)$(SYSCONFDIR)/init.d/opensysusers
 
 install-man:
 	+$(MAKE) INSTALL=$(INSTALL) DOCMODE=$(MODE) MANDIR=$(MANDIR) DOCDIR=$(DOCDIR) DESTDIR=$(DESTDIR) -C man install
 
 install-tests:
-	$(INSTALL) -d $(DESTDIR)$(TESTDIR)
-	$(INSTALL) -m $(MODE) $(TESTFILES) $(DESTDIR)$(TESTDIR)
+	$(INSTALL) -Dm $(MODE) $(TESTFILES) $(DESTDIR)$(TESTDIR)/
 
 uninstall-shared:
-	for lib in $(notdir ${LIBS}); do $(RM) $(DESTDIR)$(LIBDIR)/opensysusers/$$lib; done
-	$(RM)r --one-file-system $(DESTDIR)$(LIBDIR)/opensysusers
-	for f in $(notdir ${LIBS}); do $(RM) $(DESTDIR)$(LIBDIR)/sysusers.d/$$f; done
+	$(RM) $(DESTDIR)$(LIBDIR)/sysusers.d/$(BASIC)
 
 uninstall-default-bin:
-	$(RM) $(DESTDIR)$(BINDIR)/$(notdir $(BINPROGS))
+	$(RM) $(DESTDIR)$(BINDIR)/$(BINNAME)
 
 uninstall-custom-bin:
 	$(RM) $(DESTDIR)$(BINDIR)/$(BINNAME)
